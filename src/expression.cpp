@@ -38,11 +38,11 @@ std::vector<char> Expression::OPERATORS {
 	};	
 
 void Expression::eval() {
-	std::vector<size_t> dice_indices {};
+
+	eval_dice_pool();
+
 	std::vector<size_t> start_paren_indices {};
 	std::vector<size_t> end_paren_indices {};
-	std::vector<size_t> multiplication_indicies {};
-
 	for (size_t i = 0; i < value.length(); ++i) {
 		switch (value.at(i)) {
 			case '(':
@@ -51,33 +51,13 @@ void Expression::eval() {
 			case ')':
 				end_paren_indices.push_back(i);
 				break;
-			case 'd':
-				dice_indices.push_back(i);
-				break;
-			case '*':
-				multiplication_indicies.push_back(i);
-				break;
 		}
-
+	}
+	for (int i = start_paren_indices.size(); i > 0; --i) {
+		eval_parentheses(start_paren_indices.at(i - 1), end_paren_indices.at(i - 1));
 	}
 
-	
-	if (start_paren_indices.size() > 0) {
-		for (int i = start_paren_indices.size(); i > 0; --i) {
-			eval_parentheses(start_paren_indices.at(i - 1), end_paren_indices.at(i - 1));
-		}
-	} else {
-		for (size_t &i: dice_indices) {
-			eval_dice_pool(i);
-		}
-
-		for (size_t &i: multiplication_indicies) {
-			/* eval_dice_pool */	
-		}
-
-	
-	}
-
+	eval_multiplication();
 }
 
 ExpressionValue Expression::get_lvalue(size_t &i) {
@@ -126,37 +106,80 @@ ExpressionValue Expression::get_rvalue(size_t &i) {
 
 
 
-void Expression::eval_dice_pool(size_t &i) {
-	ExpressionValue lvalue {get_lvalue(i)};
-	ExpressionValue rvalue {get_rvalue(i)};
-	DicePool dice = DicePool(lvalue.value, rvalue.value);
-	std::string result = std::to_string(dice.result());
-	subsitute(lvalue.distance, rvalue.distance, result, i);
-}
+void Expression::eval_dice_pool() {
+	bool has_operators = true;
+	while (has_operators) {
+		has_operators = false;
+		for (size_t i=0; i < value.size(); ++i) {
+			bool is_operator = std::toupper(value.at(i)) == 'D';
+			if (is_operator) {
+					has_operators = true;
+					std::cout<<"EVAL_DICE " << value << std::endl;
+					ExpressionValue lvalue {get_lvalue(i)};
+					ExpressionValue rvalue {get_rvalue(i)};
+					DicePool dice = DicePool(lvalue.value, rvalue.value);
+					std::string result = std::to_string(dice.result());
+					std::cout << "LEFT____:" << lvalue.value << " RIGHT___:" << rvalue.value << " i:" << i << std::endl; 
+					std::cout << "MATHS " << result << std::endl;
+					subsitute(lvalue.distance, rvalue.distance, result, i);
+					break;
+				} 
+			}
+		}
+	}
+
+
 
 
 void Expression::subsitute(const int &start, const int &end, std::string &sub, const size_t offset=0) {
+	std::cout << "PRE SUB :: " << value << std::endl;
 	std::string pre;
-	if (start > 1) {
-		pre = {value.substr(0, start - 1)};
-	}
+	pre = {value.substr(0, (offset - start) + 1)};
+	std::cout << "CALCING POST NOW..." << std::endl;
 	std::string post;
-	if (end > 1) {
-		post = {value.substr(offset + end, end - 1)};
-	} 
+	post = {value.substr((end + offset))};
+	std::cout << "PRE: " << pre << " POST: " << post << std::endl;
 	value = pre + sub + post;
+	std::cout << "POST SUB :: " << value << std::endl;
 }
 
 
 void Expression::eval_parentheses(size_t &start, size_t &end) {
-	int expr_length = (end) - (start + 1);
+	int expr_length = (end - 1) - (start + 1);
 	Expression inner_expr {value.substr(start + 1, expr_length)};
 	inner_expr.eval();
-	subsitute(start, end, inner_expr.value);
+	subsitute(start, end + 1, inner_expr.value);
+	std::cout<<"EVAL_PARE " << value << std::endl;
+
 }
+
+void Expression::eval_multiplication() {
+	std::cout << "START MULT*****************" << std::endl;
+	bool has_operators = true;
+	while (has_operators) {
+		has_operators = false;
+		for (size_t i=0; i < value.size(); ++i) {
+			bool is_operator = value.at(i) == '*';
+			if (is_operator) {
+					has_operators = true;
+					std::cout<<"EVAL_MULT " << value << std::endl;
+					ExpressionValue lvalue {get_lvalue(i)};
+					ExpressionValue rvalue {get_rvalue(i)};
+					std::string result = std::to_string(lvalue.value * rvalue.value);
+					std::cout << "LV:" << lvalue.value << " RV:" << rvalue.value << " i:" << i << std::endl; 
+					std::cout << "MATHS " << result << std::endl;
+					subsitute(lvalue.distance, rvalue.distance, result, i);
+					break;
+				} 
+			}
+		}
+	}
 
 
 int Expression::get_result() {
 	eval();
-	return std::stoi(value.substr(1, value.size() - 1));
+	std::cout << "RESULT " << value << std::endl;
+	/* return std::stoi(value.substr(1, value.size() - 1)); */
+	return 1;
 }
+
