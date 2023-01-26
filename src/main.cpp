@@ -1,6 +1,8 @@
 #include <iostream>
 #include "dice_pool.hpp"
 #include <vector>
+#include <string>
+#include "expression.hpp"
 
 
 int main() {
@@ -9,5 +11,5 @@ int main() {
 	Die d6 = Die {6};
 	Die d4 = Die {4};
 
-	std::cout << (dice1d8*2)+((dice4d6>2)+1) << std::endl;
+	std::cout << Expression("2d6").get_result() << std::endl;
 }

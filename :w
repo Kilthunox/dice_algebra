@@ -1,0 +1,66 @@
+#include <string>
+#include <bits/stdc++.h>
+#include <ctype.h>
+#include "dice_pool.hpp"
+#include "die.hpp"
+#include "expression.hpp"
+#include <iostream>
+
+
+Expression::Expression(const std::string &value) {
+	result = 0;
+	this->value = value;
+}
+
+
+std::vector<char> Expression::DIGITS {
+		'0', 
+		'1',
+		'2',
+		'3',
+		'4',
+		'5',
+		'6',
+		'7',
+		'8',
+		'9'
+	};
+
+std::vector<char> Expression::OPERATORS {
+		'+',
+		'-',
+		'*',
+		'/',
+		'%',
+		'<',
+		'<'
+	};	
+
+void Expression::eval() {
+	for (size_t i = 0; i < value.length(); ++i) {
+		switch (value[i]) {
+			case 'd':
+				eval_dice_pool(i);
+				break;	
+			default:
+				result = std::stoi(value);
+		}
+	}
+}
+
+
+void Expression::eval_dice_pool(int i) {
+	std::string ndice;
+	std::string nsides;
+	
+	int left = 1;
+	int right = 1;
+
+}
+
+
+int Expression::get_result() {
+	eval();
+	return std::stoi(value);
+}
+
