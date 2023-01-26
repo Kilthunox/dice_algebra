@@ -5,6 +5,7 @@
 #include "die.hpp"
 #include "expression.hpp"
 #include <iostream>
+#include "expression_value.hpp"
 
 
 Expression::Expression(const std::string &value) {
@@ -40,6 +41,7 @@ void Expression::eval() {
 	std::vector<size_t> dice_indices {};
 	std::vector<size_t> start_paren_indices {};
 	std::vector<size_t> end_paren_indices {};
+	std::vector<size_t> multiplication_indicies {};
 
 	for (size_t i = 0; i < value.length(); ++i) {
 		switch (value.at(i)) {
@@ -52,63 +54,84 @@ void Expression::eval() {
 			case 'd':
 				dice_indices.push_back(i);
 				break;
+			case '*':
+				multiplication_indicies.push_back(i);
+				break;
 		}
 
 	}
 
 	
+	if (start_paren_indices.size() > 0) {
+		for (int i = start_paren_indices.size(); i > 0; --i) {
+			eval_parentheses(start_paren_indices.at(i - 1), end_paren_indices.at(i - 1));
+		}
+	} else {
+		for (size_t &i: dice_indices) {
+			eval_dice_pool(i);
+		}
 
-	for (size_t i = 0; i < start_paren_indices.size(); ++i) {
-		eval_parentheses(start_paren_indices.at(i), end_paren_indices.at(i));
+		for (size_t &i: multiplication_indicies) {
+			/* eval_dice_pool */	
+		}
+
+	
 	}
 
-	for (size_t &i: dice_indices) {
-		eval_dice_pool(i);
+}
+
+ExpressionValue Expression::get_lvalue(size_t &i) {
+	int step = 1;
+	std::string result;
+	while (true) {
+		if ((static_cast<int>(i) - step) >= 0) {
+			if (std::isdigit(value.at(i - step))) {
+				result = value.at(i - step) + result;
+				++step;
+			} else {
+				 break;
+			}
+		} else {
+			break;
+		}
 	}
+			
+	if (result == "") {
+		result = "1";
+	}
+	return ExpressionValue(std::stoi(result), step);
+}
+
+ExpressionValue Expression::get_rvalue(size_t &i) {
+	int step = 1;
+	std::string result;
+	while (true) {
+		if ((i + step) < value.size()) {
+			if (std::isdigit(value.at(i + step))) {
+				result += value.at(i + step);
+				step++;
+			} else {
+				 break;
+			}
+		} else {
+			break;
+		}
+	}
+			
+	if (result == "") {
+		result = "1";
+	}
+	return ExpressionValue(std::stoi(result), step);
 }
 
 
+
 void Expression::eval_dice_pool(size_t &i) {
-	std::string ndice;
-	std::string nsides;
-	
-	int start = 1;
-	int end = 1;
-	bool start_finished = false;
-	bool end_finished = false;
-	while (!start_finished && !end_finished) {
-			if ((static_cast<int>(i) - start) >= 0) {
-				if (std::isdigit(value.at(i - start))) {
-					ndice = ndice + value.at(i - start);
-					start++;
-				} else {
-					start_finished = true;
-				}
-			} else {
-				start_finished = true;
-			}
-			if ((i + end) < value.size()) {
-				if (std::isdigit(value.at(i + end))) {
-					nsides = nsides + value.at(i + end);
-					end++;
-				} else {
-					end_finished = true;
-				}
-			} else {
-				end_finished = true;
-			}
-	}
-
-	if (nsides == "") {
-		nsides = "1";
-	}
-
-	if (ndice == "") {
-		ndice = "1";
-	}
-	DicePool dice = DicePool(std::stoi(ndice), std::stoi(nsides));
+	ExpressionValue lvalue {get_lvalue(i)};
+	ExpressionValue rvalue {get_rvalue(i)};
+	DicePool dice = DicePool(lvalue.value, rvalue.value);
 	std::string result = std::to_string(dice.result());
-	subsitute(start, end, result, i);
+	subsitute(lvalue.distance, rvalue.distance, result, i);
 }
 
 
@@ -128,7 +151,6 @@ void Expression::subsitute(const int &start, const int &end, std::string &sub, c
 void Expression::eval_parentheses(size_t &start, size_t &end) {
 	int expr_length = (end) - (start + 1);
 	Expression inner_expr {value.substr(start + 1, expr_length)};
-	std::cout << inner_expr.value << std::endl;
 	inner_expr.eval();
 	subsitute(start, end, inner_expr.value);
 }
