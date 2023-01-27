@@ -65,6 +65,10 @@ void Expression::eval() {
 
 	eval_dice_pool();
 	eval_multiplication();
+	eval_division();
+	eval_modulus();
+	eval_addition();
+	eval_subtraction();
 }
 
 ExpressionValue Expression::get_lvalue(size_t &i) {
@@ -151,19 +155,7 @@ void Expression::subsitute(const int &start, const int &end, std::string &sub, c
 }
 
 
-/* void Expression::eval_parentheses(size_t &start, size_t &end) { */
-/* 	int expr_length = (end - 1) - (start + 1); */
-/* 	std::string expr_string = value.substr(start + 1, expr_length); */
-/* 	std::cout << "INNER::::" << expr_string << std::endl; */
-/* 	Expression inner_expr(expr_string); */
-/* 	inner_expr.eval(); */
-/* 	subsitute(start, end, inner_expr.value); */
-/* 	std::cout<<"EVAL_PARE " << value << std::endl; */
-
-/* } */
-
 void Expression::eval_multiplication() {
-	std::cout << "START MULT*****************" << std::endl;
 	bool has_operators = true;
 	while (has_operators) {
 		has_operators = false;
@@ -171,12 +163,84 @@ void Expression::eval_multiplication() {
 			bool is_operator = value.at(i) == '*';
 			if (is_operator) {
 					has_operators = true;
-					std::cout<<"EVAL_MULT " << value << std::endl;
 					ExpressionValue lvalue {get_lvalue(i)};
 					ExpressionValue rvalue {get_rvalue(i)};
 					std::string result = std::to_string(lvalue.value * rvalue.value);
-					std::cout << "LV:" << lvalue.value << " RV:" << rvalue.value << " i:" << i << std::endl; 
-					std::cout << "MATHS " << result << std::endl;
+					subsitute(lvalue.distance, rvalue.distance, result, i);
+					break;
+				} 
+			}
+		}
+	}
+
+void Expression::eval_division() {
+	bool has_operators = true;
+	while (has_operators) {
+		has_operators = false;
+		for (size_t i=0; i < value.size(); ++i) {
+			bool is_operator = value.at(i) == '/';
+			if (is_operator) {
+					has_operators = true;
+					ExpressionValue lvalue {get_lvalue(i)};
+					ExpressionValue rvalue {get_rvalue(i)};
+					std::string result = std::to_string(lvalue.value / rvalue.value);
+					subsitute(lvalue.distance, rvalue.distance, result, i);
+					break;
+				} 
+			}
+		}
+	}
+
+void Expression::eval_modulus() {
+	bool has_operators = true;
+	while (has_operators) {
+		has_operators = false;
+		for (size_t i=0; i < value.size(); ++i) {
+			bool is_operator = value.at(i) == '%';
+			if (is_operator) {
+					has_operators = true;
+					ExpressionValue lvalue {get_lvalue(i)};
+					ExpressionValue rvalue {get_rvalue(i)};
+					std::string result = std::to_string(lvalue.value % rvalue.value);
+					subsitute(lvalue.distance, rvalue.distance, result, i);
+					break;
+				} 
+			}
+		}
+	}
+
+
+
+void Expression::eval_addition() {
+	bool has_operators = true;
+	while (has_operators) {
+		has_operators = false;
+		for (size_t i=0; i < value.size(); ++i) {
+			bool is_operator = value.at(i) == '+';
+			if (is_operator) {
+					has_operators = true;
+					ExpressionValue lvalue {get_lvalue(i)};
+					ExpressionValue rvalue {get_rvalue(i)};
+					std::string result = std::to_string(lvalue.value + rvalue.value);
+					subsitute(lvalue.distance, rvalue.distance, result, i);
+					break;
+				} 
+			}
+		}
+	}
+
+
+void Expression::eval_subtraction() {
+	bool has_operators = true;
+	while (has_operators) {
+		has_operators = false;
+		for (size_t i=0; i < value.size(); ++i) {
+			bool is_operator = value.at(i) == '-';
+			if (is_operator) {
+					has_operators = true;
+					ExpressionValue lvalue {get_lvalue(i)};
+					ExpressionValue rvalue {get_rvalue(i)};
+					std::string result = std::to_string(lvalue.value - rvalue.value);
 					subsitute(lvalue.distance, rvalue.distance, result, i);
 					break;
 				} 
@@ -187,8 +251,6 @@ void Expression::eval_multiplication() {
 
 int Expression::get_result() {
 	eval();
-	std::cout << "RESULT " << value << std::endl;
-	/* return std::stoi(value.substr(1, value.size() - 1)); */
-	return 1;
+	return std::stoi(value);
 }
 
