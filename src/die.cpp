@@ -4,12 +4,15 @@
 #include "die.hpp"
 
 
-
-Die::Die(const unsigned short &nsides): cached_result{0} {
+Die::Die(const unsigned short &nsides): result{0} {
 	this->nsides = nsides;
 }
 
-Die::~Die(){};
+Die::Die(){
+	nsides = 1;
+}
+
+Die::~Die(){}
 
 unsigned short Die::random() {
 	long seed {std::chrono::system_clock::now().time_since_epoch().count()};
@@ -18,74 +21,70 @@ unsigned short Die::random() {
 }
 
 void Die::roll() {
-	cached_result = 0;
-	cached_result = (random() % nsides) + 1;
+	result = 0;
+	result = (random() % nsides) + 1;
 }
 
-unsigned short &Die::result() {
-	if (cached_result == 0) {
-		roll();
-	}
-	return cached_result;
+unsigned short &Die::get_result() {
+	return result;
 }
 
 int Die::operator-() {
-	return -result(); 
+	return -get_result(); 
 }
 
 int Die::operator+(Die &die) {
-	return result() + die.result();
+	return get_result() + die.get_result();
 } 
 
 int Die::operator-(Die &die) {
-	return result() - die.result();
+	return get_result() - die.get_result();
 }
 
 int operator+(Die &die, const int num) {
-	return die.result() + num;
+	return die.get_result() + num;
 }
 
 int operator+(const int num, Die &die) {
-	return num + die.result();
+	return num + die.get_result();
 }
 
 int operator-(Die &die, const int num) {
-	return die.result() - num;
+	return die.get_result() - num;
 }
 
 int operator-(const int num, Die &die) {
-	return num - die.result();
+	return num - die.get_result();
 }
 
 int operator*(Die &die, const int num) {
-	return die.result() * num;
+	return die.get_result() * num;
 }
 
 int operator*(const int num, Die &die) {
-	return num * die.result();
+	return num * die.get_result();
 }
-
 
 int operator/(Die &die, const int num) {
 	if (num == 0) {
 		return 0;
 	}
-	return die.result() / num;
+	return die.get_result() / num;
 }
 
 int operator/(const int num, Die &die) {
-	return num / die.result();
+	return num / die.get_result();
 }
 
 int operator%(Die &die, const int num) {
 	if (num == 0) {
 		return 0;
 	}
-	return die.result() % num;
+	return die.get_result() % num;
 }
 
 int operator%(const int num, Die &die) {
-	return num % die.result();
+	return num % die.get_result();
 }
 
 

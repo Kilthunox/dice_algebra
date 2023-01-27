@@ -6,5 +6,5 @@
 
 
 int main() {
-	std::cout << Expression("1d100%10").get_result() << std::endl;
+	std::cout << Expression("(10d10>3)+10").get_result() << std::endl;
 }

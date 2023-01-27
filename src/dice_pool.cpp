@@ -6,8 +6,7 @@
 #include <iostream>
 
 
-DicePool::DicePool(const unsigned short ndice, const unsigned short nsides) {
-	this->cached_result = 0;
+DicePool::DicePool(const unsigned short ndice, const unsigned short nsides): result{0} {
 	for (unsigned short i=0; i < ndice; ++i) {
 		pool.push_back(Die(nsides));
 	}
@@ -17,37 +16,34 @@ DicePool::~DicePool() {
 };
 
 void DicePool::roll() {
-	cached_result = 0;
 	for (Die &die: pool) {
 			die.roll();
 	}
 }
 
-void DicePool::total() {
-	cached_result = 0;
+
+void DicePool::sum() {
+	result = 0;	
 	for (Die &die: pool) {
-		cached_result += die.result();
+		result += die.get_result();	
 	}
 }
 
-unsigned short DicePool::result() {
-	if (cached_result == 0) {
-		total();
-	}
-	return cached_result;
+unsigned short DicePool::get_result() {
+	return result;
 }
 
 int DicePool::operator-() {
-	return -result(); 
+	return -get_result(); 
 }
 
 
 int DicePool::operator+(DicePool &pool){
-	return result() + pool.result();
+	return get_result() + pool.get_result();
 }
 
 int DicePool::operator-(DicePool &pool){
-	return result() - result();	
+	return get_result() - get_result();	
 }
 
 unsigned short DicePool::size() {
@@ -55,72 +51,70 @@ unsigned short DicePool::size() {
 }
 
 bool DicePool::compare_lowest(Die &l_die, Die &r_die) {
-	return l_die.result() < r_die.result();
+	return l_die.get_result() < r_die.get_result();
 }
 
 void DicePool::keep_lowest(unsigned short num) {
-	cached_result = 0;
 	std::sort(pool.begin(), pool.end(), compare_lowest);
-	pool.resize(num, Die{0});
+	pool.resize(num);
 }
 
 bool DicePool::compare_highest(Die &l_die, Die &r_die) {
-	return l_die.result() > r_die.result();
+	return l_die.get_result() > r_die.get_result();
 
 }
 
 void DicePool::keep_highest(unsigned short num) {
-	cached_result = 0;
 	std::sort(pool.begin(), pool.end(), compare_highest);
-	pool.resize(num, Die{0});
+	pool.resize(num);
 }
 
 int operator+(DicePool &pool, const int num) {
-	return pool.result() + num;
+	return pool.get_result() + num;
 }
 
 int operator+(const int num, DicePool &pool) {
-	return num + pool.result();
+	return num + pool.get_result();
 }
 
 int operator-(DicePool &pool, const int num) {
-	return pool.result() - num; 
+	return pool.get_result() - num; 
 }
 
 int operator-(const int num, DicePool &pool) {
-	return num - pool.result();
+	return num - pool.get_result();
 }
 
 int operator*(DicePool &pool, const int num) {
-	return pool.result() * num;
+	return pool.get_result() * num;
 }
 
 int operator*(const int num, DicePool &pool) {
-	return num * pool.result();
+	return num * pool.get_result();
 }
 
 int operator/(DicePool &pool, const int num) {
-	return pool.result() / num;
+	return pool.get_result() / num;
 }
 
 int operator/(const int num, DicePool &pool) {
-	return num / pool.result();
+	return num / pool.get_result();
 }
 
 int operator%(DicePool &pool, const int num) {
-	return pool.result() % num;
+	return pool.get_result() % num;
 }
 
 int operator%(const int num, DicePool &pool) {
-	return num % pool.result();
+	return num % pool.get_result();
 } 
 
 int operator<(DicePool &pool, const int num) {
 	pool.keep_lowest(num);
-	return pool.result();
+	return pool.get_result();
 }
 
 int operator>(DicePool &pool, const int num) {
 	pool.keep_highest(num);
-	return pool.result();
+	return pool.get_result();
 }

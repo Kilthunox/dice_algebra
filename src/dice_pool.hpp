@@ -7,19 +7,19 @@
 class DicePool 
 {
 private:
-	unsigned short cached_result;
-	std::vector<Die> pool;
+	unsigned short result;
 	static bool compare_highest(Die &l_die, Die &r_die);
 	static bool compare_lowest(Die &l_die, Die &r_die);
 
 
 public:
+	std::vector<Die> pool;
 	DicePool(const unsigned short ndice, const unsigned short nsides);
 	~DicePool();
+	void sum();
 	void roll();
-	void total();
 	unsigned short size();
-	unsigned short result();
+	unsigned short get_result();
 	int operator-();
 	int operator+(DicePool &pool);
 	int operator-(DicePool &pool);

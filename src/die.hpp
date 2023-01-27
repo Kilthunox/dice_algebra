@@ -4,17 +4,19 @@
 class Die {
 	private:
 		unsigned short nsides;
-		unsigned short cached_result;
+		unsigned short result;
 		
 		static unsigned short random();
 	public:
+		Die();
 		Die(const unsigned short &nsides);
 		~Die();
 		int operator-();
 		int operator+(Die &die);
 		int operator-(Die &die);
 		void roll();
-		unsigned short &result();
+		unsigned short &get_result();
+
 
 };
 

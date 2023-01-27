@@ -13,6 +13,7 @@ class Expression {
 private:
 	std::string value;
 	int result;
+	void eval_filters();
 	void eval_dice_pool();
 	void eval_parentheses(size_t &start, size_t &end);
 	void eval_multiplication();
