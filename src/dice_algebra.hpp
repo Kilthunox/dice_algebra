@@ -10,7 +10,7 @@ class DiceAlgebra {
 	static std::vector<char> OPERATORS;
 
 private:
-	std::string value;
+	std::string expr;
 	int result;
 	void eval_filters();
 	void eval_dice_pool();
@@ -26,7 +26,8 @@ private:
 
 
 public:
-	DiceAlgebra(const std::string &value);
+	DiceAlgebra(const std::string &expr);
+	bool is_valid();
 	void eval();
 	int get_result();
 };

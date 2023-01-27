@@ -7,9 +7,9 @@
 #include "expression_value.hpp"
 
 
-DiceAlgebra::DiceAlgebra(const std::string &value) {
+DiceAlgebra::DiceAlgebra(const std::string &expr) {
 	result = 0;
-	this->value = value;
+	this->expr = expr;
 }
 
 
@@ -36,11 +36,35 @@ std::vector<char> DiceAlgebra::OPERATORS {
 	'<'
 };	
 
+bool DiceAlgebra::is_valid() {
+	std::stack<size_t> lpars {};
+	std::stack<size_t> rpars {};
+	for (size_t i=0; i < expr.length(); ++i) {
+		switch (expr.at(i)) {
+			case '(':
+				lpars.push(i);
+				break;
+			case ')':
+				rpars.push(i);
+				break;
+		}
+	}
+
+	if (lpars.size() != rpars.size()) {
+		return false;
+	}
+
+	for (size_t i=0; i < expr.length(); ++i) {
+
+	}
+
+}
+
 void DiceAlgebra::eval() {
 	std::stack<size_t> lpars {};
 	std::stack<size_t> rpars {};
-	for (size_t i=0; i < value.length(); ++i) {
-		switch (value.at(i)) {
+	for (size_t i=0; i < expr.length(); ++i) {
+		switch (expr.at(i)) {
 			case '(':
 				lpars.push(i);
 				break;
@@ -51,9 +75,9 @@ void DiceAlgebra::eval() {
 	}
 
 	while (!lpars.empty()) {
-		DiceAlgebra inner_exp {value.substr(lpars.top() + 1, rpars.top() - lpars.top() - 1)};	
+		DiceAlgebra inner_exp {expr.substr(lpars.top() + 1, rpars.top() - lpars.top() - 1)};	
 		inner_exp.eval();	
-		value = value.substr(0, lpars.top()) + inner_exp.value + value.substr(rpars.top() + 1);
+		expr = expr.substr(0, lpars.top()) + inner_exp.expr + expr.substr(rpars.top() + 1);
 		lpars.pop();
 		rpars.pop();	
 	}
@@ -72,8 +96,8 @@ ExpressionValue DiceAlgebra::get_lvalue(size_t &i) {
 	std::string result;
 	while (true) {
 		if ((static_cast<int>(i) - step) >= 0) {
-			if (std::isdigit(value.at(i - step))) {
-				result = value.at(i - step) + result;
+			if (std::isdigit(expr.at(i - step))) {
+				result = expr.at(i - step) + result;
 				++step;
 			} else {
 				break;
@@ -93,9 +117,9 @@ ExpressionValue DiceAlgebra::get_rvalue(size_t &i) {
 	int step = 1;
 	std::string result;
 	while (true) {
-		if ((i + step) < value.size()) {
-			if (std::isdigit(value.at(i + step))) {
-				result += value.at(i + step);
+		if ((i + step) < expr.size()) {
+			if (std::isdigit(expr.at(i + step))) {
+				result += expr.at(i + step);
 				step++;
 			} else {
 				break;
@@ -116,40 +140,40 @@ void DiceAlgebra::eval_filters() {
 	bool has_operators = true;
 	while (has_operators) {
 		has_operators = false;
-		for (size_t i=0; i < value.size(); ++i) {
-			if (value.at(i) == '>') {
+		for (size_t i=0; i < expr.size(); ++i) {
+			if (expr.at(i) == '>') {
 				has_operators = true;
-				ExpressionValue filter_value {get_rvalue(i)};
+				ExpressionValue filter_expr {get_rvalue(i)};
 				size_t step = i;
 				while (step > 0) {
-					if (std::toupper(value.at(--step)) == 'D') {
+					if (std::toupper(expr.at(--step)) == 'D') {
 						ExpressionValue lvalue {get_lvalue(step)};
 						ExpressionValue rvalue {get_rvalue(step)};
 						DicePool dice = DicePool(lvalue.value, rvalue.value);
 						dice.roll();
-						dice > filter_value.value;
+						dice > filter_expr.value;
 						dice.sum();
 						std::string result = std::to_string(dice.get_result());
-						value = value.substr(0, (step - lvalue.distance) + 1) + result + value.substr(i + filter_value.distance);
+						expr = expr.substr(0, (step - lvalue.distance) + 1) + result + expr.substr(i + filter_expr.distance);
 						break;
 					}
 				}
 				break;
-			} else if (value.at(i) == '<') {
-				if (value.at(i) == '<') {
+			} else if (expr.at(i) == '<') {
+				if (expr.at(i) == '<') {
 					has_operators = true;
-					ExpressionValue filter_value {get_rvalue(i)};
+					ExpressionValue filter_expr {get_rvalue(i)};
 					size_t step = i;
 					while (step > 0) {
-					if (std::toupper(value.at(--step)) == 'D') {
+					if (std::toupper(expr.at(--step)) == 'D') {
 						ExpressionValue lvalue {get_lvalue(step)};
 						ExpressionValue rvalue {get_rvalue(step)};
 						DicePool dice = DicePool(lvalue.value, rvalue.value);
 						dice.roll();
-						dice < filter_value.value;
+						dice < filter_expr.value;
 						dice.sum();
 						std::string result = std::to_string(dice.get_result());
-						value = value.substr(0, (step - lvalue.distance) + 1) + result + value.substr(i + filter_value.distance);
+						expr = expr.substr(0, (step - lvalue.distance) + 1) + result + expr.substr(i + filter_expr.distance);
 						break;
 						}
 					}
@@ -166,8 +190,8 @@ void DiceAlgebra::eval_dice_pool() {
 	bool has_operators = true;
 	while (has_operators) {
 		has_operators = false;
-		for (size_t i=0; i < value.size(); ++i) {
-			bool is_operator = std::toupper(value.at(i)) == 'D';
+		for (size_t i=0; i < expr.size(); ++i) {
+			bool is_operator = std::toupper(expr.at(i)) == 'D';
 			if (is_operator) {
 				has_operators = true;
 				ExpressionValue lvalue {get_lvalue(i)};
@@ -188,10 +212,10 @@ void DiceAlgebra::eval_dice_pool() {
 
 void DiceAlgebra::subsitute(const int &start, const int &end, std::string &sub, const size_t offset=0) {
 	std::string pre;
-	pre = {value.substr(0, (offset - start) + 1)};
+	pre = {expr.substr(0, (offset - start) + 1)};
 	std::string post;
-	post = {value.substr((end + offset))};
-	value = pre + sub + post;
+	post = {expr.substr((end + offset))};
+	expr = pre + sub + post;
 }
 
 
@@ -199,8 +223,8 @@ void DiceAlgebra::eval_multiplication() {
 	bool has_operators = true;
 	while (has_operators) {
 		has_operators = false;
-		for (size_t i=0; i < value.size(); ++i) {
-			bool is_operator = value.at(i) == '*';
+		for (size_t i=0; i < expr.size(); ++i) {
+			bool is_operator = expr.at(i) == '*';
 			if (is_operator) {
 				has_operators = true;
 				ExpressionValue lvalue {get_lvalue(i)};
@@ -217,8 +241,8 @@ void DiceAlgebra::eval_division() {
 	bool has_operators = true;
 	while (has_operators) {
 		has_operators = false;
-		for (size_t i=0; i < value.size(); ++i) {
-			bool is_operator = value.at(i) == '/';
+		for (size_t i=0; i < expr.size(); ++i) {
+			bool is_operator = expr.at(i) == '/';
 			if (is_operator) {
 				has_operators = true;
 				ExpressionValue lvalue {get_lvalue(i)};
@@ -235,8 +259,8 @@ void DiceAlgebra::eval_modulus() {
 	bool has_operators = true;
 	while (has_operators) {
 		has_operators = false;
-		for (size_t i=0; i < value.size(); ++i) {
-			bool is_operator = value.at(i) == '%';
+		for (size_t i=0; i < expr.size(); ++i) {
+			bool is_operator = expr.at(i) == '%';
 			if (is_operator) {
 				has_operators = true;
 				ExpressionValue lvalue {get_lvalue(i)};
@@ -255,8 +279,8 @@ void DiceAlgebra::eval_addition() {
 	bool has_operators = true;
 	while (has_operators) {
 		has_operators = false;
-		for (size_t i=0; i < value.size(); ++i) {
-			bool is_operator = value.at(i) == '+';
+		for (size_t i=0; i < expr.size(); ++i) {
+			bool is_operator = expr.at(i) == '+';
 			if (is_operator) {
 				has_operators = true;
 				ExpressionValue lvalue {get_lvalue(i)};
@@ -274,8 +298,8 @@ void DiceAlgebra::eval_subtraction() {
 	bool has_operators = true;
 	while (has_operators) {
 		has_operators = false;
-		for (size_t i=0; i < value.size(); ++i) {
-			bool is_operator = value.at(i) == '-';
+		for (size_t i=0; i < expr.size(); ++i) {
+			bool is_operator = expr.at(i) == '-';
 			if (is_operator) {
 				has_operators = true;
 				ExpressionValue lvalue {get_lvalue(i)};
@@ -291,6 +315,6 @@ void DiceAlgebra::eval_subtraction() {
 
 int DiceAlgebra::get_result() {
 	eval();
-	return std::stoi(value);
+	return std::stoi(expr);
 }
 
