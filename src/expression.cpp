@@ -4,7 +4,6 @@
 #include "dice_pool.hpp"
 #include "die.hpp"
 #include "expression.hpp"
-#include <iostream>
 #include "expression_value.hpp"
 
 
@@ -38,7 +37,6 @@ std::vector<char> Expression::OPERATORS {
 	};	
 
 void Expression::eval() {
-	std::cout << "EVAL=======" << value << std::endl;
 	std::stack<size_t> lpars {};
 	std::stack<size_t> rpars {};
 	for (size_t i=0; i < value.length(); ++i) {
@@ -54,11 +52,8 @@ void Expression::eval() {
 
 	while (!lpars.empty()) {
 		Expression inner_exp {value.substr(lpars.top() + 1, rpars.top() - lpars.top() - 1)};	
-		std::cout << "----------------------" << inner_exp.value << std::endl;
 		inner_exp.eval();	
-		std::cout << "==========" << value << std::endl;
 		value = value.substr(0, lpars.top()) + inner_exp.value + value.substr(rpars.top() + 1);
-		std::cout << "===========" << value << std::endl;
 		lpars.pop();
 		rpars.pop();	
 	}
@@ -125,13 +120,10 @@ void Expression::eval_dice_pool() {
 			bool is_operator = std::toupper(value.at(i)) == 'D';
 			if (is_operator) {
 					has_operators = true;
-					std::cout<<"EVAL_DICE " << value << std::endl;
 					ExpressionValue lvalue {get_lvalue(i)};
 					ExpressionValue rvalue {get_rvalue(i)};
 					DicePool dice = DicePool(lvalue.value, rvalue.value);
 					std::string result = std::to_string(dice.result());
-					std::cout << "LEFT____:" << lvalue.value << " RIGHT___:" << rvalue.value << " i:" << i << std::endl; 
-					std::cout << "MATHS " << result << std::endl;
 					subsitute(lvalue.distance, rvalue.distance, result, i);
 					break;
 				} 
@@ -143,15 +135,11 @@ void Expression::eval_dice_pool() {
 
 
 void Expression::subsitute(const int &start, const int &end, std::string &sub, const size_t offset=0) {
-	std::cout << "PRE SUB :: " << value << std::endl;
 	std::string pre;
 	pre = {value.substr(0, (offset - start) + 1)};
-	std::cout << "CALCING POST NOW..." << std::endl;
 	std::string post;
 	post = {value.substr((end + offset))};
-	std::cout << "PRE: " << pre << " POST: " << post << std::endl;
 	value = pre + sub + post;
-	std::cout << "POST SUB :: " << value << std::endl;
 }
 
 

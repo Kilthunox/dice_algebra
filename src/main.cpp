@@ -6,5 +6,5 @@
 
 
 int main() {
-	std::cout << Expression("(1d8+6)/2%10*10-2").get_result() << std::endl;
+	std::cout << Expression("1d100%10").get_result() << std::endl;
 }
