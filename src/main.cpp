@@ -1,10 +1,9 @@
 #include <iostream>
-#include "dice_pool.hpp"
-#include <vector>
 #include <string>
+#include "dice_pool.hpp"
 #include "expression.hpp"
 
 
-int main() {
-	std::cout << Expression("(10d10>3)+10").get_result() << std::endl;
+int main(int argc, char *argv[]) {
+	std::cout << Expression(argv[argc - 1]).get_result() << std::endl;
 }
