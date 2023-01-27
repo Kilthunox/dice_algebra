@@ -38,25 +38,32 @@ std::vector<char> Expression::OPERATORS {
 	};	
 
 void Expression::eval() {
-
-	eval_dice_pool();
-
-	std::vector<size_t> start_paren_indices {};
-	std::vector<size_t> end_paren_indices {};
-	for (size_t i = 0; i < value.length(); ++i) {
+	std::cout << "EVAL=======" << value << std::endl;
+	std::stack<size_t> lpars {};
+	std::stack<size_t> rpars {};
+	for (size_t i=0; i < value.length(); ++i) {
 		switch (value.at(i)) {
 			case '(':
-				start_paren_indices.push_back(i);
+				lpars.push(i);
 				break;
 			case ')':
-				end_paren_indices.push_back(i);
+				rpars.push(i);
 				break;
 		}
 	}
-	for (int i = start_paren_indices.size(); i > 0; --i) {
-		eval_parentheses(start_paren_indices.at(i - 1), end_paren_indices.at(i - 1));
+
+	while (!lpars.empty()) {
+		Expression inner_exp {value.substr(lpars.top() + 1, rpars.top() - lpars.top() - 1)};	
+		std::cout << "----------------------" << inner_exp.value << std::endl;
+		inner_exp.eval();	
+		std::cout << "==========" << value << std::endl;
+		value = value.substr(0, lpars.top()) + inner_exp.value + value.substr(rpars.top() + 1);
+		std::cout << "===========" << value << std::endl;
+		lpars.pop();
+		rpars.pop();	
 	}
 
+	eval_dice_pool();
 	eval_multiplication();
 }
 
@@ -144,14 +151,16 @@ void Expression::subsitute(const int &start, const int &end, std::string &sub, c
 }
 
 
-void Expression::eval_parentheses(size_t &start, size_t &end) {
-	int expr_length = (end - 1) - (start + 1);
-	Expression inner_expr {value.substr(start + 1, expr_length)};
-	inner_expr.eval();
-	subsitute(start, end + 1, inner_expr.value);
-	std::cout<<"EVAL_PARE " << value << std::endl;
+/* void Expression::eval_parentheses(size_t &start, size_t &end) { */
+/* 	int expr_length = (end - 1) - (start + 1); */
+/* 	std::string expr_string = value.substr(start + 1, expr_length); */
+/* 	std::cout << "INNER::::" << expr_string << std::endl; */
+/* 	Expression inner_expr(expr_string); */
+/* 	inner_expr.eval(); */
+/* 	subsitute(start, end, inner_expr.value); */
+/* 	std::cout<<"EVAL_PARE " << value << std::endl; */
 
-}
+/* } */
 
 void Expression::eval_multiplication() {
 	std::cout << "START MULT*****************" << std::endl;

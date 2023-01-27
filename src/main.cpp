@@ -11,5 +11,5 @@ int main() {
 	Die d6 = Die {6};
 	Die d4 = Die {4};
 
-	std::cout << Expression("d6*2d4").get_result() << std::endl;
+	std::cout << Expression("1*1*1*(d100*1)").get_result() << std::endl;
 }
