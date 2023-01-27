@@ -3,17 +3,17 @@
 #include <ctype.h>
 #include "dice_pool.hpp"
 #include "die.hpp"
-#include "expression.hpp"
+#include "dice_algebra.hpp"
 #include "expression_value.hpp"
 
 
-Expression::Expression(const std::string &value) {
+DiceAlgebra::DiceAlgebra(const std::string &value) {
 	result = 0;
 	this->value = value;
 }
 
 
-std::vector<char> Expression::DIGITS {
+std::vector<char> DiceAlgebra::DIGITS {
 	'0', 
 	'1',
 	'2',
@@ -26,7 +26,7 @@ std::vector<char> Expression::DIGITS {
 	'9'
 };
 
-std::vector<char> Expression::OPERATORS {
+std::vector<char> DiceAlgebra::OPERATORS {
 	'+',
 	'-',
 	'*',
@@ -36,7 +36,7 @@ std::vector<char> Expression::OPERATORS {
 	'<'
 };	
 
-void Expression::eval() {
+void DiceAlgebra::eval() {
 	std::stack<size_t> lpars {};
 	std::stack<size_t> rpars {};
 	for (size_t i=0; i < value.length(); ++i) {
@@ -51,7 +51,7 @@ void Expression::eval() {
 	}
 
 	while (!lpars.empty()) {
-		Expression inner_exp {value.substr(lpars.top() + 1, rpars.top() - lpars.top() - 1)};	
+		DiceAlgebra inner_exp {value.substr(lpars.top() + 1, rpars.top() - lpars.top() - 1)};	
 		inner_exp.eval();	
 		value = value.substr(0, lpars.top()) + inner_exp.value + value.substr(rpars.top() + 1);
 		lpars.pop();
@@ -67,7 +67,7 @@ void Expression::eval() {
 	eval_subtraction();
 }
 
-ExpressionValue Expression::get_lvalue(size_t &i) {
+ExpressionValue DiceAlgebra::get_lvalue(size_t &i) {
 	int step = 1;
 	std::string result;
 	while (true) {
@@ -89,7 +89,7 @@ ExpressionValue Expression::get_lvalue(size_t &i) {
 	return ExpressionValue(std::stoi(result), step);
 }
 
-ExpressionValue Expression::get_rvalue(size_t &i) {
+ExpressionValue DiceAlgebra::get_rvalue(size_t &i) {
 	int step = 1;
 	std::string result;
 	while (true) {
@@ -112,7 +112,7 @@ ExpressionValue Expression::get_rvalue(size_t &i) {
 }
 
 
-void Expression::eval_filters() {
+void DiceAlgebra::eval_filters() {
 	bool has_operators = true;
 	while (has_operators) {
 		has_operators = false;
@@ -162,7 +162,7 @@ void Expression::eval_filters() {
 
 
 
-void Expression::eval_dice_pool() {
+void DiceAlgebra::eval_dice_pool() {
 	bool has_operators = true;
 	while (has_operators) {
 		has_operators = false;
@@ -186,7 +186,7 @@ void Expression::eval_dice_pool() {
 
 
 
-void Expression::subsitute(const int &start, const int &end, std::string &sub, const size_t offset=0) {
+void DiceAlgebra::subsitute(const int &start, const int &end, std::string &sub, const size_t offset=0) {
 	std::string pre;
 	pre = {value.substr(0, (offset - start) + 1)};
 	std::string post;
@@ -195,7 +195,7 @@ void Expression::subsitute(const int &start, const int &end, std::string &sub, c
 }
 
 
-void Expression::eval_multiplication() {
+void DiceAlgebra::eval_multiplication() {
 	bool has_operators = true;
 	while (has_operators) {
 		has_operators = false;
@@ -213,7 +213,7 @@ void Expression::eval_multiplication() {
 	}
 }
 
-void Expression::eval_division() {
+void DiceAlgebra::eval_division() {
 	bool has_operators = true;
 	while (has_operators) {
 		has_operators = false;
@@ -231,7 +231,7 @@ void Expression::eval_division() {
 	}
 }
 
-void Expression::eval_modulus() {
+void DiceAlgebra::eval_modulus() {
 	bool has_operators = true;
 	while (has_operators) {
 		has_operators = false;
@@ -251,7 +251,7 @@ void Expression::eval_modulus() {
 
 
 
-void Expression::eval_addition() {
+void DiceAlgebra::eval_addition() {
 	bool has_operators = true;
 	while (has_operators) {
 		has_operators = false;
@@ -270,7 +270,7 @@ void Expression::eval_addition() {
 }
 
 
-void Expression::eval_subtraction() {
+void DiceAlgebra::eval_subtraction() {
 	bool has_operators = true;
 	while (has_operators) {
 		has_operators = false;
@@ -289,7 +289,7 @@ void Expression::eval_subtraction() {
 }
 
 
-int Expression::get_result() {
+int DiceAlgebra::get_result() {
 	eval();
 	return std::stoi(value);
 }

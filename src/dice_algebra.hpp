@@ -4,9 +4,8 @@
 #include <vector>
 #include "expression_value.hpp"
 
-/* PDMDAS */
 
-class Expression {
+class DiceAlgebra {
 	static std::vector<char> DIGITS;
 	static std::vector<char> OPERATORS;
 
@@ -27,7 +26,7 @@ private:
 
 
 public:
-	Expression(const std::string &value);
+	DiceAlgebra(const std::string &value);
 	void eval();
 	int get_result();
 };

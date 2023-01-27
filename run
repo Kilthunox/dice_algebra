@@ -1,1 +1,1 @@
-./bin/main.64;
+./bin/main.64 $1;
