@@ -33,7 +33,7 @@ std::vector<char> DiceAlgebra::OPERATORS {
 	'/',
 	'%',
 	'<',
-	'<'
+	'>'
 };	
 
 bool DiceAlgebra::is_valid() {
@@ -55,33 +55,26 @@ bool DiceAlgebra::is_valid() {
 	}
 
 	for (size_t i=0; i < expr.length(); ++i) {
+		char &ch = expr.at(i);
+		if (ch == '+' || ch == '-' || ch == '*') {
+		
+		
+		} else if (ch == '/' || ch == '%') {
+		
+		} else if (ch == '<' || ch == '>') {
+		
+		} else if (std::isdigit(ch)) {
+		
+		} else {
+			return false;
+		}
 
 	}
-
+	return true;
 }
 
 void DiceAlgebra::eval() {
-	std::stack<size_t> lpars {};
-	std::stack<size_t> rpars {};
-	for (size_t i=0; i < expr.length(); ++i) {
-		switch (expr.at(i)) {
-			case '(':
-				lpars.push(i);
-				break;
-			case ')':
-				rpars.push(i);
-				break;
-		}
-	}
-
-	while (!lpars.empty()) {
-		DiceAlgebra inner_exp {expr.substr(lpars.top() + 1, rpars.top() - lpars.top() - 1)};	
-		inner_exp.eval();	
-		expr = expr.substr(0, lpars.top()) + inner_exp.expr + expr.substr(rpars.top() + 1);
-		lpars.pop();
-		rpars.pop();	
-	}
-
+	eval_parentheses();
 	eval_filters();
 	eval_dice_pool();
 	eval_multiplication();
@@ -130,10 +123,59 @@ ExpressionValue DiceAlgebra::get_rvalue(size_t &i) {
 	}
 
 	if (result == "") {
-		result = "1";
+		result = "";
 	}
 	return ExpressionValue(std::stoi(result), step);
 }
+
+
+void DiceAlgebra::eval_parentheses() {
+	while (expr.find('(') != std::string::npos) {
+		std::stack<size_t> left_parentheses_stack {};
+		std::queue<std::pair<size_t, size_t>> paired_parentheses_queue {};
+		size_t left_parentheses = 0; 
+		size_t right_parentheses = 0;
+		for (size_t i=0; i < expr.length(); ++i) {
+			std::cout << "looping to find ()" << std::endl;
+			auto ch = expr.at(i);
+			if (ch == '(') {
+				std::cout << "FOUND (" << std::endl;
+				left_parentheses = i;
+			} else if (ch == ')') {
+				right_parentheses = i;
+				std::cout << "FOUND PAIRING ), Starting EVAL" << std::endl;
+				auto expr_start = left_parentheses + 1;
+				auto expr_length = (right_parentheses - left_parentheses) - 1;
+				std::cout << "SUB RANGE: " << expr_start << "-SIZE " << expr_length << std::endl; 
+				DiceAlgebra inner_exp {expr.substr(expr_start, expr_length)};
+				std::cout << "SUB " << inner_exp.expr << std::endl;
+				inner_exp.eval();
+				std::string left_expr = expr.substr(0, left_parentheses);
+				std::string right_expr = expr.substr(right_parentheses + 1);
+				std::cout << "LEFT=" << left_expr << " CENTER=" << inner_exp.get_expr() <<  " RIGHT=" << right_expr << std::endl;
+				expr = left_expr + inner_exp.get_expr() + right_expr;
+				break;
+			}
+		}
+	}
+}
+
+/* 	while (!paired_parentheses_queue.empty()) { */
+/* 		auto &paired_parentheses = paired_parentheses_queue.front(); */
+/* 		std::cout << "FOUND PAIRING ), Starting EVAL" << std::endl; */
+/* 		auto expr_start = paired_parentheses.first + 1; */
+/* 		auto expr_length = (paired_parentheses.second - paired_parentheses.first) - 1; */
+/* 		std::cout << "SUB RANGE: " << expr_start << "-SIZE " << expr_length << std::endl; */ 
+/* 		DiceAlgebra inner_exp {expr.substr(expr_start, expr_length)}; */
+/* 		std::cout << "SUB " << inner_exp.expr << std::endl; */
+/* 		inner_exp.eval(); */
+/* 		std::string left_expr = expr.substr(0, paired_parentheses.first); */
+/* 		std::string right_expr = expr.substr(paired_parentheses.second + 1); */
+/* 		std::cout << "LEFT=" << left_expr << " CENTER=" << inner_exp.get_expr() <<  " RIGHT=" << right_expr << std::endl; */
+/* 		expr = left_expr + inner_exp.get_expr() + right_expr; */
+/* 		paired_parentheses_queue.pop(); */
+/* 	} */
+/* } */
 
 
 void DiceAlgebra::eval_filters() {
@@ -183,7 +225,6 @@ void DiceAlgebra::eval_filters() {
 		}
 	}
 }
-
 
 
 void DiceAlgebra::eval_dice_pool() {
@@ -312,6 +353,10 @@ void DiceAlgebra::eval_subtraction() {
 	}
 }
 
+
+std::string DiceAlgebra::get_expr() {
+	return expr;
+}
 
 int DiceAlgebra::get_result() {
 	eval();

@@ -14,7 +14,7 @@ private:
 	int result;
 	void eval_filters();
 	void eval_dice_pool();
-	void eval_parentheses(size_t &start, size_t &end);
+	void eval_parentheses();
 	void eval_multiplication();
 	void eval_division();
 	void eval_modulus();
@@ -30,4 +30,5 @@ public:
 	bool is_valid();
 	void eval();
 	int get_result();
+	std::string get_expr();
 };
