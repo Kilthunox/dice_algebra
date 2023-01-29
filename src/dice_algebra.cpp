@@ -38,6 +38,7 @@ unsigned short DiceAlgebra::validate() const {
 						return ValidationResponse::ZERO_DIVISION;
 					}
 				}
+				break;
 			case '<': case '>':
 				if (i > 0) {
 					int step = 1;
