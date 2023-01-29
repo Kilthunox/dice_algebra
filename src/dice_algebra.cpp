@@ -13,64 +13,62 @@ DiceAlgebra::DiceAlgebra(const std::string &expr) {
 }
 
 
-std::vector<char> DiceAlgebra::DIGITS {
-	'0', 
-	'1',
-	'2',
-	'3',
-	'4',
-	'5',
-	'6',
-	'7',
-	'8',
-	'9'
-};
+const std::string DiceAlgebra::CHARACTER_SET = "0123456789()*%/+-D<>";
 
-std::vector<char> DiceAlgebra::OPERATORS {
-	'+',
-	'-',
-	'*',
-	'/',
-	'%',
-	'<',
-	'>'
-};	
-
-bool DiceAlgebra::is_valid() {
-	std::stack<size_t> lpars {};
-	std::stack<size_t> rpars {};
+unsigned short DiceAlgebra::validate() const {
+	std::stack<size_t> parentheses {};
 	for (size_t i=0; i < expr.length(); ++i) {
+		char ch = std::toupper(expr.at(i));
+
+		/* std::cout << (CHARACTER_SET.find(ch) == std::string::npos ? "CHARACTER IS NOT VALID" : "CHARACTER IS VALID") << " <" << ch << "> " << std::endl; */ 
+		if (CHARACTER_SET.find(ch) == std::string::npos) {
+			return ValidationResponse::BAD_CHAR;
+		}
+
 		switch (expr.at(i)) {
 			case '(':
-				lpars.push(i);
+				parentheses.push(i);
 				break;
 			case ')':
-				rpars.push(i);
+				parentheses.pop();
+				break;
+			case '/': case '%':
+				if (i < expr.length()) {
+					if (expr.at(i + 1) == '0') {
+						return ValidationResponse::ZERO_DIVISION;
+					}
+				}
+			case '<': case '>':
+				if (i > 0) {
+					int step = 1;
+
+					while (true) {
+						int next_step = i - step;
+						if (next_step < 0) {
+							return ValidationResponse::BAD_FILTER;
+						}
+						char prev_ch = std::toupper(expr.at(i - step));
+						std::cout << prev_ch << std::endl;
+						if (std::isdigit(prev_ch)) {
+							step++;
+						} else if (prev_ch == 'D') {
+							break;
+						} else {
+							return ValidationResponse::BAD_FILTER;
+						}
+					}
+				} else {
+					return ValidationResponse::BAD_FILTER;
+				}
 				break;
 		}
 	}
-
-	if (lpars.size() != rpars.size()) {
-		return false;
+	
+	if (!parentheses.empty()) {
+		return ValidationResponse::UNBALANCED;
 	}
 
-	for (size_t i=0; i < expr.length(); ++i) {
-		char &ch = expr.at(i);
-		if (ch == '+' || ch == '-' || ch == '*') {
-		
-		
-		} else if (ch == '/' || ch == '%') {
-		
-		} else if (ch == '<' || ch == '>') {
-		
-		} else if (std::isdigit(ch)) {
-		
-		} else {
-			return false;
-		}
-
-	}
-	return true;
+	return ValidationResponse::IS_VALID;
 }
 
 void DiceAlgebra::eval() {

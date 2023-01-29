@@ -6,10 +6,8 @@
 
 
 class DiceAlgebra {
-	static std::vector<char> DIGITS;
-	static std::vector<char> OPERATORS;
-
 private:
+	static const std::string CHARACTER_SET;
 	std::string expr;
 	int result;
 	void eval_filters();
@@ -26,8 +24,15 @@ private:
 
 
 public:
+	enum ValidationResponse: unsigned short {
+		IS_VALID,
+		BAD_CHAR, 
+		UNBALANCED, 
+		BAD_FILTER,
+		ZERO_DIVISION,
+	};
 	DiceAlgebra(const std::string &expr);
-	bool is_valid();
+	unsigned short validate() const;
 	void eval();
 	int get_result();
 	std::string get_expr();
