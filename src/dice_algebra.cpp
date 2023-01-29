@@ -20,7 +20,6 @@ unsigned short DiceAlgebra::validate() const {
 	for (size_t i=0; i < expr.length(); ++i) {
 		char ch = std::toupper(expr.at(i));
 
-		/* std::cout << (CHARACTER_SET.find(ch) == std::string::npos ? "CHARACTER IS NOT VALID" : "CHARACTER IS VALID") << " <" << ch << "> " << std::endl; */ 
 		if (CHARACTER_SET.find(ch) == std::string::npos) {
 			return ValidationResponse::BAD_CHAR;
 		}
@@ -49,7 +48,6 @@ unsigned short DiceAlgebra::validate() const {
 							return ValidationResponse::BAD_FILTER;
 						}
 						char prev_ch = std::toupper(expr.at(i - step));
-						std::cout << prev_ch << std::endl;
 						if (std::isdigit(prev_ch)) {
 							step++;
 						} else if (prev_ch == 'D') {
