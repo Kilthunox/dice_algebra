@@ -21,8 +21,8 @@ private:
 	void eval_addition();
 	void eval_subtraction();
 	void subsitute(const int &start, const int &end, std::string &sub, const size_t offset);
-	ExpressionValue get_lvalue(size_t &i);
-	ExpressionValue get_rvalue(size_t &i);
+	ExpressionValue get_lvalue(size_t &i, const char operand) const;
+	ExpressionValue get_rvalue(size_t &i, const char operand) const;
 
 
 public:

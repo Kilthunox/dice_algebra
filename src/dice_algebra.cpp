@@ -74,6 +74,9 @@ bool DiceAlgebra::is_valid() {
 }
 
 void DiceAlgebra::eval() {
+	if (get_expr() == "") {
+		expr == "0";
+	}
 	eval_parentheses();
 	eval_filters();
 	eval_dice_pool();
@@ -84,7 +87,7 @@ void DiceAlgebra::eval() {
 	eval_subtraction();
 }
 
-ExpressionValue DiceAlgebra::get_lvalue(size_t &i) {
+ExpressionValue DiceAlgebra::get_lvalue(size_t &i, const char operand) const {
 	int step = 1;
 	std::string result;
 	while (true) {
@@ -101,12 +104,25 @@ ExpressionValue DiceAlgebra::get_lvalue(size_t &i) {
 	}
 
 	if (result == "") {
-		result = "1";
+		switch (std::toupper(operand)) {
+			case '+': 
+			case '-': 
+			case '/': 
+			case '%': 
+			case '*': 
+			case '<': 
+			case '>':
+				result = "0";
+				break;
+			case 'D':
+				result = "1";
+				break;
+		};
 	}
-	return ExpressionValue(std::stoi(result), step);
+	return ExpressionValue(std::max(std::stoi(result), 0), step);
 }
 
-ExpressionValue DiceAlgebra::get_rvalue(size_t &i) {
+ExpressionValue DiceAlgebra::get_rvalue(size_t &i, const char operand) const {
 	int step = 1;
 	std::string result;
 	while (true) {
@@ -123,9 +139,23 @@ ExpressionValue DiceAlgebra::get_rvalue(size_t &i) {
 	}
 
 	if (result == "") {
-		result = "";
+		switch (std::toupper(operand)) {
+			case '+': case '-':
+				result = "0";
+				break;
+			case '/': case '%': case '*':
+				result = "1";
+				break;
+			case '<': case '>':
+				result = "0";
+				break;
+			case 'D':
+				result = "1";
+				break;
+		};
 	}
-	return ExpressionValue(std::stoi(result), step);
+
+	return ExpressionValue(std::max(std::stoi(result), 0), step);
 }
 
 
@@ -136,46 +166,29 @@ void DiceAlgebra::eval_parentheses() {
 		size_t left_parentheses = 0; 
 		size_t right_parentheses = 0;
 		for (size_t i=0; i < expr.length(); ++i) {
-			std::cout << "looping to find ()" << std::endl;
 			auto ch = expr.at(i);
 			if (ch == '(') {
-				std::cout << "FOUND (" << std::endl;
 				left_parentheses = i;
 			} else if (ch == ')') {
 				right_parentheses = i;
-				std::cout << "FOUND PAIRING ), Starting EVAL" << std::endl;
 				auto expr_start = left_parentheses + 1;
 				auto expr_length = (right_parentheses - left_parentheses) - 1;
-				std::cout << "SUB RANGE: " << expr_start << "-SIZE " << expr_length << std::endl; 
-				DiceAlgebra inner_exp {expr.substr(expr_start, expr_length)};
-				std::cout << "SUB " << inner_exp.expr << std::endl;
-				inner_exp.eval();
+				std::string inner_substr;
+				if (expr_length <= 0) {
+					inner_substr = "0";
+				} else {
+					inner_substr = expr.substr(expr_start, expr_length);
+				}
+				DiceAlgebra inner_expr {inner_substr};
+				inner_expr.eval();
 				std::string left_expr = expr.substr(0, left_parentheses);
 				std::string right_expr = expr.substr(right_parentheses + 1);
-				std::cout << "LEFT=" << left_expr << " CENTER=" << inner_exp.get_expr() <<  " RIGHT=" << right_expr << std::endl;
-				expr = left_expr + inner_exp.get_expr() + right_expr;
+				expr = left_expr + inner_expr.get_expr() + right_expr;
 				break;
 			}
 		}
 	}
 }
-
-/* 	while (!paired_parentheses_queue.empty()) { */
-/* 		auto &paired_parentheses = paired_parentheses_queue.front(); */
-/* 		std::cout << "FOUND PAIRING ), Starting EVAL" << std::endl; */
-/* 		auto expr_start = paired_parentheses.first + 1; */
-/* 		auto expr_length = (paired_parentheses.second - paired_parentheses.first) - 1; */
-/* 		std::cout << "SUB RANGE: " << expr_start << "-SIZE " << expr_length << std::endl; */ 
-/* 		DiceAlgebra inner_exp {expr.substr(expr_start, expr_length)}; */
-/* 		std::cout << "SUB " << inner_exp.expr << std::endl; */
-/* 		inner_exp.eval(); */
-/* 		std::string left_expr = expr.substr(0, paired_parentheses.first); */
-/* 		std::string right_expr = expr.substr(paired_parentheses.second + 1); */
-/* 		std::cout << "LEFT=" << left_expr << " CENTER=" << inner_exp.get_expr() <<  " RIGHT=" << right_expr << std::endl; */
-/* 		expr = left_expr + inner_exp.get_expr() + right_expr; */
-/* 		paired_parentheses_queue.pop(); */
-/* 	} */
-/* } */
 
 
 void DiceAlgebra::eval_filters() {
@@ -185,12 +198,12 @@ void DiceAlgebra::eval_filters() {
 		for (size_t i=0; i < expr.size(); ++i) {
 			if (expr.at(i) == '>') {
 				has_operators = true;
-				ExpressionValue filter_expr {get_rvalue(i)};
-				size_t step = i;
-				while (step > 0) {
-					if (std::toupper(expr.at(--step)) == 'D') {
-						ExpressionValue lvalue {get_lvalue(step)};
-						ExpressionValue rvalue {get_rvalue(step)};
+				ExpressionValue filter_expr {get_rvalue(i, '>')};
+				size_t step = i;  
+				while (step > 0) {  
+					if (std::toupper(expr.at(--step)) == 'D') {  
+						ExpressionValue lvalue {get_lvalue(step, 'D')};
+						ExpressionValue rvalue {get_rvalue(step, 'D')};
 						DicePool dice = DicePool(lvalue.value, rvalue.value);
 						dice.roll();
 						dice > filter_expr.value;
@@ -204,12 +217,12 @@ void DiceAlgebra::eval_filters() {
 			} else if (expr.at(i) == '<') {
 				if (expr.at(i) == '<') {
 					has_operators = true;
-					ExpressionValue filter_expr {get_rvalue(i)};
+					ExpressionValue filter_expr {get_rvalue(i, '<')};
 					size_t step = i;
 					while (step > 0) {
 					if (std::toupper(expr.at(--step)) == 'D') {
-						ExpressionValue lvalue {get_lvalue(step)};
-						ExpressionValue rvalue {get_rvalue(step)};
+						ExpressionValue lvalue {get_lvalue(step, 'D')};
+						ExpressionValue rvalue {get_rvalue(step, 'D')};
 						DicePool dice = DicePool(lvalue.value, rvalue.value);
 						dice.roll();
 						dice < filter_expr.value;
@@ -235,8 +248,8 @@ void DiceAlgebra::eval_dice_pool() {
 			bool is_operator = std::toupper(expr.at(i)) == 'D';
 			if (is_operator) {
 				has_operators = true;
-				ExpressionValue lvalue {get_lvalue(i)};
-				ExpressionValue rvalue {get_rvalue(i)};
+				ExpressionValue lvalue {get_lvalue(i, 'D')};
+				ExpressionValue rvalue {get_rvalue(i, 'D')};
 				DicePool dice = DicePool(lvalue.value, rvalue.value);
 				dice.roll();
 				dice.sum();
@@ -268,8 +281,8 @@ void DiceAlgebra::eval_multiplication() {
 			bool is_operator = expr.at(i) == '*';
 			if (is_operator) {
 				has_operators = true;
-				ExpressionValue lvalue {get_lvalue(i)};
-				ExpressionValue rvalue {get_rvalue(i)};
+				ExpressionValue lvalue {get_lvalue(i, '*')};
+				ExpressionValue rvalue {get_rvalue(i, '*')};
 				std::string result = std::to_string(lvalue.value * rvalue.value);
 				subsitute(lvalue.distance, rvalue.distance, result, i);
 				break;
@@ -286,8 +299,8 @@ void DiceAlgebra::eval_division() {
 			bool is_operator = expr.at(i) == '/';
 			if (is_operator) {
 				has_operators = true;
-				ExpressionValue lvalue {get_lvalue(i)};
-				ExpressionValue rvalue {get_rvalue(i)};
+				ExpressionValue lvalue {get_lvalue(i, '/')};
+				ExpressionValue rvalue {get_rvalue(i, '/')};
 				std::string result = std::to_string(lvalue.value / rvalue.value);
 				subsitute(lvalue.distance, rvalue.distance, result, i);
 				break;
@@ -304,8 +317,8 @@ void DiceAlgebra::eval_modulus() {
 			bool is_operator = expr.at(i) == '%';
 			if (is_operator) {
 				has_operators = true;
-				ExpressionValue lvalue {get_lvalue(i)};
-				ExpressionValue rvalue {get_rvalue(i)};
+				ExpressionValue lvalue {get_lvalue(i, '%')};
+				ExpressionValue rvalue {get_rvalue(i, '%')};
 				std::string result = std::to_string(lvalue.value % rvalue.value);
 				subsitute(lvalue.distance, rvalue.distance, result, i);
 				break;
@@ -324,9 +337,9 @@ void DiceAlgebra::eval_addition() {
 			bool is_operator = expr.at(i) == '+';
 			if (is_operator) {
 				has_operators = true;
-				ExpressionValue lvalue {get_lvalue(i)};
-				ExpressionValue rvalue {get_rvalue(i)};
-				std::string result = std::to_string(lvalue.value + rvalue.value);
+				ExpressionValue lvalue {get_lvalue(i, '+')};
+				ExpressionValue rvalue {get_rvalue(i, '+')};
+				std::string result = std::to_string(std::max(lvalue.value + rvalue.value, 0));
 				subsitute(lvalue.distance, rvalue.distance, result, i);
 				break;
 			} 
@@ -343,9 +356,9 @@ void DiceAlgebra::eval_subtraction() {
 			bool is_operator = expr.at(i) == '-';
 			if (is_operator) {
 				has_operators = true;
-				ExpressionValue lvalue {get_lvalue(i)};
-				ExpressionValue rvalue {get_rvalue(i)};
-				std::string result = std::to_string(lvalue.value - rvalue.value);
+				ExpressionValue lvalue {get_lvalue(i, '-')};
+				ExpressionValue rvalue {get_rvalue(i, '-')};
+				std::string result = std::to_string(std::max(lvalue.value - rvalue.value, 0));
 				subsitute(lvalue.distance, rvalue.distance, result, i);
 				break;
 			} 
