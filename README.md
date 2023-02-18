@@ -23,7 +23,7 @@ This will produce a random number between 1 and 6 inclusively.
 ## Operators:
 - d -> Dice: Denotes number of dice (n) and number of sides (s) each die has when rolled:: `nds`
 - < -> Less Than: Filters the resulting dice pool to keep the lowest (f) results:: `nds<f`
-- > -> Greater Than: Filters the resulting dice pool to keep the highest (f) results:: `nds>f`
+- \> -> Greater Than: Filters the resulting dice pool to keep the highest (f) results:: `nds>f`
 - () -> Parentheses: Evaluates expressions within balanced parentheses first.
 - * -> Multiplication: Multiplies the left integer(l) by the right integer(r):: `l*r`
 - / -> Integer division: Divides using the left integer(l) as the numerator and the right integer(r) as the denominator. Returns the result without the remainder:: `l/r`
