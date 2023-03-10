@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DICE_ALGEBRA_HPP
+#define DICE_ALGEBRA_HPP
 
 #include <string>
 #include <vector>
@@ -31,9 +32,15 @@ class DiceAlgebra {
 			BAD_FILTER,
 			ZERO_DIVISION,
 		};
-		DiceAlgebra(const std::string &expr);
+
+		DiceAlgebra();
+		DiceAlgebra(const std::string expr);
+
 		unsigned short validate() const;
 		void eval();
 		int get_result();
 		std::string get_expr();
 };
+
+#endif
+
