@@ -2,7 +2,7 @@
 #define DICE_POOL_HPP
 
 #include <vector>
-#include "dice/die.hpp"
+#include "die.hpp"
 
 
 class DicePool 

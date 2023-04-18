@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <chrono>
 #include <random>
-#include "dice/die.hpp"
+#include "die.hpp"
 
 
 Die::Die(const unsigned short &nsides): result{0} {

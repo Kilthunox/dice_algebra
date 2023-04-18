@@ -1,10 +1,10 @@
 #include <string>
 #include <bits/stdc++.h>
 #include <ctype.h>
-#include "dice/dice_pool.hpp"
-#include "dice/die.hpp"
-#include "dice/dice_algebra.hpp"
-#include "dice/expression_value.hpp"
+#include "dice_pool.hpp"
+#include "die.hpp"
+#include "dice_algebra.hpp"
+#include "expression_value.hpp"
 
 
 DiceAlgebra::DiceAlgebra() : expr{} {}

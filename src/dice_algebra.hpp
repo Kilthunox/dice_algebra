@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "dice/expression_value.hpp"
+#include "expression_value.hpp"
 
 
 class DiceAlgebra {
