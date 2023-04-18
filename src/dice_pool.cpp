@@ -1,5 +1,5 @@
-#include "dice_pool.hpp"
-#include "die.hpp"
+#include "dice/dice_pool.hpp"
+#include "dice/die.hpp"
 #include <vector>
 #include <bits/stdc++.h>
 

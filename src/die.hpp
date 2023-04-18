@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DIE_HPP
+#define DIE_HPP
 
 
 class Die {
@@ -30,3 +31,5 @@ int operator/(Die &die, const int num);
 int operator/(const int num, Die &die);
 int operator%(Die &die, const int num);
 int operator%(const int num, Die &die);
+
+#endif

@@ -1,7 +1,8 @@
-#pragma once
+#ifndef DICE_POOL_HPP
+#define DICE_POOL_HPP
 
 #include <vector>
-#include "die.hpp"
+#include "dice/die.hpp"
 
 
 class DicePool 
@@ -40,3 +41,5 @@ int operator%(DicePool &pool, const int num);
 int operator%(const int num, DicePool &pool);
 int operator<(DicePool &pool, const int num);
 int operator>(DicePool &pool, const int num);
+
+#endif

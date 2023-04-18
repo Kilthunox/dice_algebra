@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef EXPRESSION_VALUE_HPP
+#define EXPRESSION_VALUE_HPP
 
 class ExpressionValue {
 	public:
@@ -7,3 +7,5 @@ class ExpressionValue {
 		int distance;
 		ExpressionValue(int value, int distance);
 };
+
+#endif
